@@ -1,0 +1,21 @@
+services:
+  backend:
+    build: ./backend
+    ports:
+      - "5000:5000"
+    environment:
+      - DB_CONNECTION=mongodb://mongodb:27017/catalogo
+    volumes:
+      - ./frontend/dist:/app/frontend/dist  # Monta la carpeta dist en el contenedor
+    depends_on:
+      - mongodb
+
+  mongodb:
+    image: mongo:6.0
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+
+volumes:
+  mongodb_data:

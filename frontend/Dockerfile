@@ -1,7 +1,7 @@
-# Usa la imagen oficial de Nginx
-FROM nginx:alpine
-# Copia los archivos compilados (dist) al servidor Nginx
-COPY dist /usr/share/nginx/html
-# Opcional: Personaliza la configuración de Nginx si es necesario
-# COPY nginx.conf /etc/nginx/conf.d/default.conf
-EXPOSE 80
+FROM node:18
+WORKDIR /app
+COPY package*.json ./
+RUN npm install
+COPY . .
+EXPOSE 3000
+CMD ["npm", "run", "dev"] 

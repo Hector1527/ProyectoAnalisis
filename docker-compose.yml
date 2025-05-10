@@ -8,21 +8,19 @@ services:
     volumes:
       - ./backend:/app  # Monta el código del backend (desarrollo)
       - /app/node_modules  # Evita sobrescribir node_modules
-      - ./frontend/dist:/app/frontend/dist 
+      - ./frontend/dist:/app/frontend/dist
     depends_on:
       - mongodb
 
   frontend:  # ¡Nuevo servicio para el frontend!
     build: ./frontend
     ports:
-      - "3000:3000"  # Puerto típico para React/Vue
+    - "5173:5173"
     volumes:
       - ./frontend:/app  # Monta el código del frontend (desarrollo)
       - /app/node_modules
     stdin_open: true  # Necesario para React en desarrollo
     tty: true
-    depends_on:
-      - backend  # Si el frontend depende de APIs del backend
 
   mongodb:
     image: mongo:6.0

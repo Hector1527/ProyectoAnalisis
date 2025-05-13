@@ -15,7 +15,7 @@ services:
   frontend:  # ¡Nuevo servicio para el frontend!
     build: ./frontend
     ports:
-    - "5173:5173"
+      - "443:443"  # Mapea el puerto HTTPS
     volumes:
       - ./frontend:/app  # Monta el código del frontend (desarrollo)
       - /app/node_modules

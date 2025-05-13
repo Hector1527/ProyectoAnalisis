@@ -10,9 +10,6 @@ const mongoose = require("mongoose");
 
 const app = express();
 
-// Sirve archivos estáticos desde la carpeta dist
-app.use(express.static(path.join(__dirname, 'frontend/dist')));
-
 // Tus rutas de API
 app.get('/api/juegos', (req, res) => {
   res.json([{ nombre: "Ejemplo", genero: "Aventura" }]);
@@ -44,3 +41,4 @@ mongoose.connect(process.env.MONGODB_URI)
 app.use('/api/juegos', juegosRouter); 
 
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));
+

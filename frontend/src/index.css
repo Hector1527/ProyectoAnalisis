@@ -1,39 +1,26 @@
+/* ╔════════════════════════════════╗
+   ║  RESET & VARIABLES DE BASE     ║
+   ╚════════════════════════════════╝ */
 :root {
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
-
   color-scheme: light dark;
   color: rgba(255, 255, 255, 0.87);
   background-color: #242424;
-
-  font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-a:hover {
-  color: #535bf2;
-}
-
+html,
 body {
+  height: 100%;
   margin: 0;
-  display: flex;
-  place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
 }
 
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
-}
+a { font-weight: 500; color: #646cff; text-decoration: none; }
+a:hover { color: #535bf2; }
 
 button {
   border-radius: 8px;
@@ -41,46 +28,80 @@ button {
   padding: 0.6em 1.2em;
   font-size: 1em;
   font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
+  background: #1a1a1a;
   cursor: pointer;
   transition: border-color 0.25s;
 }
-button:hover {
-  border-color: #646cff;
-}
+button:hover               { border-color: #646cff; }
 button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
-}
+button:focus-visible       { outline: 4px auto -webkit-focus-ring-color; }
 
 @media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
-  }
+  :root  { color: #213547; background-color: #ffffff; }
+  a:hover { color: #747bff; }
+  button  { background-color: #f9f9f9; }
 }
 
+/* ╔════════════════════════════════╗
+   ║  TARJETAS DEL CATÁLOGO         ║
+   ╚════════════════════════════════╝ */
 .game-card {
   border-radius: 16px;
   overflow: hidden;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
-  background-color: #ffffff;
+  background: #ffffff;
+}
+.game-card:hover { transform: translateY(-6px); box-shadow: 0 12px 24px rgba(0,0,0,.15); }
+.game-card-img   { height: 180px; width: 100%; object-fit: cover; }
+
+/* ╔════════════════════════════════╗
+   ║  LOGIN (GameHub)               ║
+   ╚════════════════════════════════╝ */
+.login-wrapper {
+  position: fixed;       /* cubre todo el viewport */
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: auto;
 }
 
-.game-card:hover {
-  transform: translateY(-6px);
-  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
-}
-
-.game-card-img {
-  height: 180px;
+/* Top e bottom bars */
+.top-bar,
+.bottom-bar {
   width: 100%;
-  object-fit: cover;
+  backdrop-filter: blur(10px);
+  background: rgba(0,0,0,.55);
+  color: #fff;
 }
+.top-bar    { height: 60px; }
+.bottom-bar { height: 40px; }
+
+/* Main flexible */
+main { flex: 1 0 auto; }
+
+/* Overlay para oscurecer fondo detrás de la tarjeta */
+.login-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,.45);
+}
+
+/* Tarjeta blanca */
+.login-card {
+  width: 100%;
+  max-width: 380px;
+  border-radius: 14px;
+  background: #fff;
+  color: #000;
+}
+.login-card .form-control {
+  background: #f1f1f1;
+  border: 1px solid #d0d0d0;
+  color: #000;
+}
+.login-card .form-control::placeholder { color: #7c7c7c; }
+.login-card .form-control:focus {
+  border-color: #0d6efd;
+  box-shadow: none;
+}
+.login-card label { color: #555; }

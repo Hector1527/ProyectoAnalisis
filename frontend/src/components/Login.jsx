@@ -1,78 +1,105 @@
-// src/components/Login.jsx
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import bgImage from '/OIP.jpeg';            // imagen de fondo
 
 function Login() {
-  const navigate = useNavigate();
+  const navigate        = useNavigate();
   const [form, setForm] = useState({ email: '', password: '' });
 
-  // Maneja cambios en los inputs
   const handleChange = e =>
     setForm({ ...form, [e.target.name]: e.target.value });
 
-  // Envía el formulario
   const handleSubmit = e => {
     e.preventDefault();
+    navigate('/catalogo');                  // ← validar después
+  };
 
-    /* ----------------------------------------------------
-       TODO: aquí vendrá la validación real (consulta al backend)
-       De momento, siempre damos acceso:
-    ---------------------------------------------------- */
-    navigate('/catalogo');
+  /* Estilos inline que solucionan el alto completo y el overlay */
+  const wrapperStyle = {
+    minHeight: '100vh',
+    display: 'flex',
+    flexDirection: 'column',
+    background: `url(${bgImage}) center / cover no-repeat`,
+    position: 'relative',
+  };
+
+  const overlayStyle = {
+    position: 'absolute',
+    inset: 0,
+    background: 'rgba(0,0,0,.45)',
+    backdropFilter: 'blur(4px)',
+    zIndex: 0,
+  };
+
+  const cardStyle = {
+    zIndex: 1,                  // sobre el overlay
+    width: '100%',
+    maxWidth: '380px',
+    padding: '2rem 2.5rem',
+    borderRadius: '16px',
+    background: '#fff',
+    border: '2px solid #e5e5e5',
+    boxShadow: '0 8px 26px rgba(0,0,0,.2)',
+    color: '#000',
   };
 
   return (
-    <div className="d-flex align-items-center justify-content-center min-vh-100 bg-light">
-      <div className="card shadow-sm" style={{ maxWidth: '420px', width: '100%' }}>
-        <div className="card-body p-4">
-          <h2 className="card-title mb-4 text-center">Iniciar sesión</h2>
+    <div style={wrapperStyle}>
+      <div style={overlayStyle} />
 
-          <form onSubmit={handleSubmit} noValidate>
-            {/* Email */}
+      {/* Top bar ------------------------------------------------ */}
+      <header className="top-bar d-flex justify-content-between align-items-center px-3">
+        <div className="d-flex align-items-center gap-2">
+          <img src="/GameHub_Logo.png" alt="logo" height="38" />
+          <span className="fw-bold fs-5 text-white">GameHub</span>
+        </div>
+        <div className="text-white small d-flex gap-4 flex-wrap">
+          <span>🎮 Jugadores online: 12 543</span>
+          <span>🆕 Nuevos títulos hoy: 7</span>
+        </div>
+      </header>
+
+      {/* Login card -------------------------------------------- */}
+      <main className="flex-grow-1 d-flex align-items-center justify-content-center">
+        <div style={cardStyle}>
+          <h2 className="text-center mb-4 fw-bold">Iniciar sesión</h2>
+
+          <form onSubmit={handleSubmit}>
             <div className="form-floating mb-3">
               <input
                 type="email"
                 name="email"
                 className="form-control"
-                id="loginEmail"
-                placeholder="usuario@ejemplo.com"
+                placeholder="correo"
                 value={form.email}
                 onChange={handleChange}
                 required
               />
-              <label htmlFor="loginEmail">Correo electrónico</label>
+              <label>Correo electrónico</label>
             </div>
 
-            {/* Password */}
             <div className="form-floating mb-4">
               <input
                 type="password"
                 name="password"
                 className="form-control"
-                id="loginPassword"
-                placeholder="Contraseña"
+                placeholder="contraseña"
                 value={form.password}
                 onChange={handleChange}
                 required
               />
-              <label htmlFor="loginPassword">Contraseña</label>
+              <label>Contraseña</label>
             </div>
 
-            {/* Botón */}
-            <button className="btn btn-primary w-100" type="submit">
-              Entrar
-            </button>
+            <button className="btn btn-primary w-100">Entrar</button>
           </form>
         </div>
+      </main>
 
-        {/* Pie opcional */}
-        <div className="card-footer py-3 text-center">
-          <small className="text-muted">
-            {/* Este enlace no hace nada aún: */}
-            ¿No tienes cuenta? <a href="#">Regístrate</a>
-          </small>
-        </div>
-      </div>
+      {/* Bottom bar ------------------------------------------- */}
+      <footer className="bottom-bar d-flex justify-content-center align-items-center text-white small">
+        <span>Versión 0.1.0 • Build abc123 • © 2025 GameHub</span>
+      </footer>
     </div>
   );
 }

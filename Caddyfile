@@ -1,0 +1,16 @@
+laboratorioanalisis.freedynamicdns.net {
+    reverse_proxy frontend:443 {
+        header_up Host {host}
+        transport http {
+            tls
+        }
+    }
+
+    handle /api/* {
+        reverse_proxy backend:5000 {
+            header_up Host {host}
+        }
+    }
+
+    tls hectorpg1010@gmail.com
+}

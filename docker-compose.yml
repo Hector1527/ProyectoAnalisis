@@ -1,32 +1,54 @@
-version: '3.8'
+networks:
+  webnet:
+    driver: bridge
 
 services:
-networks:
-  app-network:
-    driver: bridge
+  tailscale:
+    image: tailscale/tailscale:latest
+    volumes:
+      - ./tailscale:/var/lib/tailscale
+      - /dev/net/tun:/dev/net/tun
+    cap_add:
+      - net_admin
+      - sys_module
+    environment:
+      - TS_AUTHKEY=tskey-auth-kGpizcY6B611CNTRL
+    restart: unless-stopped
+    networks:
+      - webnet
+
+  caddy:
+    image: caddy:2.6
+    depends_on:
+      - tailscale
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+    restart: unless-stopped
+    networks:
+      - webnet
+    ports:
+      - "80:80"
+      - "443:443"
 
   frontend:
     build: ./frontend
-    ports:
-      - "5173:5173"
     environment:
-      - VITE_API_BASE_URL=http://backend:5000/api  # Usa el nombre del servicio backend
-    depends_on:
-      - backend
+      - VITE_API_BASE_URL=https://laboratorioanalisis.freedynamicdns.net/api
     networks:
-      - app-network
+      - webnet
+
+  backend:
+    build: ./backend
+    environment:
+      - MONGODB_URI=mongodb://mongodb:27017/catalogo
+    networks:
+      - webnet
 
   mongodb:
     image: mongo:6.0
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: admin
-      MONGO_INITDB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
-      MONGO_INITDB_DATABASE: ${DB_NAME}
-    volumes:
-      - mongodb_data:/data/db
-    ports:
-      - "27017:27017"
-    command: --auth
+    networks:
+      - webnet
 
 volumes:
-  mongodb_data:
+  caddy_data:

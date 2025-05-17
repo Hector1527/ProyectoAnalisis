@@ -1,33 +1,32 @@
-services:
-  backend:
-    build: ./backend
-    ports:
-      - "5000:5000"  # Backend expuesto en puerto 5000
-    environment:
-      - DB_CONNECTION=mongodb://mongodb:27017/catalogo
-    volumes:
-      - ./backend:/app  # Monta el código del backend (desarrollo)
-      - /app/node_modules  # Evita sobrescribir node_modules
-      - ./frontend/dist:/app/frontend/dist
-    depends_on:
-      - mongodb
+version: '3.8'
 
-  frontend:  # ¡Nuevo servicio para el frontend!
+services:
+networks:
+  app-network:
+    driver: bridge
+
+  frontend:
     build: ./frontend
     ports:
-      - "443:443"  # Mapea el puerto HTTPS
-    volumes:
-      - ./frontend:/app  # Monta el código del frontend (desarrollo)
-      - /app/node_modules
-    stdin_open: true  # Necesario para React en desarrollo
-    tty: true
+      - "5173:5173"
+    environment:
+      - VITE_API_BASE_URL=http://backend:5000/api  # Usa el nombre del servicio backend
+    depends_on:
+      - backend
+    networks:
+      - app-network
 
   mongodb:
     image: mongo:6.0
-    ports:
-      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MONGO_INITDB_DATABASE: ${DB_NAME}
     volumes:
       - mongodb_data:/data/db
+    ports:
+      - "27017:27017"
+    command: --auth
 
 volumes:
   mongodb_data:

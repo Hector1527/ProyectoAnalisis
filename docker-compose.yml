@@ -32,6 +32,7 @@ services:
       - "443:443"
 
   frontend:
+    container_name: frontend
     build: ./frontend
     environment:
       - VITE_API_BASE_URL=https://laboratorioanalisis.freedynamicdns.net/api
@@ -39,11 +40,14 @@ services:
       - webnet
 
   backend:
+    container_name: backend
     build: ./backend
     environment:
       - MONGODB_URI=mongodb://mongodb:27017/catalogo
     networks:
       - webnet
+    ports:
+      - "5000:5000" 
 
   mongodb:
     image: mongo:6.0

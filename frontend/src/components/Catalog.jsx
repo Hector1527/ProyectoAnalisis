@@ -1,31 +1,88 @@
 import { useState, useRef, useEffect } from 'react';
-import bgImage from '/OIP.jpeg';                     // mismo fondo que Login.jsx
+import bgImage from '/OIP.jpeg';
 
-const DEFAULT_IMG =
-  'https://via.placeholder.com/800x600.png?text=Imagen+no+disponible';
+const DEFAULT_IMG = 'https://via.placeholder.com/800x600.png?text=Imagen+no+disponible';
 
 function Catalog() {
-  const [juegos, setJuegos]   = useState([]);
-  const [show, setShow]       = useState(false);
-  const [nuevo, setNuevo]     = useState({ nombre: '', descripcion: '', imagen: '' });
-  const nombreRef             = useRef(null);
+  const [juegos, setJuegos] = useState([]);
+  const [show, setShow] = useState(false);
+  const [nuevo, setNuevo] = useState({
+    nombre: '',
+    genero: '',
+    descripcion: '',
+    imagen: '',
+    fechaLanzamiento: '',
+    plataformas: '',
+    calificacion: ''
+  });
+  const nombreRef = useRef(null);
 
-  /* Enfocar 1er input cuando abre modal */
-  useEffect(() => { if (show && nombreRef.current) nombreRef.current.focus(); }, [show]);
+  // Obtener juegos del backend al montar el componente
+  useEffect(() => {
+    fetch('https://laboratorioanalisis.freedynamicdns.net/api/juegos')
+      .then(res => {
+        if (!res.ok) throw new Error('Error al obtener juegos');
+        return res.json();
+      })
+      .then(data => setJuegos(data.juegos || []))
+      .catch(err => {
+        console.error(err);
+        alert('Error al cargar los juegos del servidor');
+      });
+  }, []);
+
+  // Enfocar input al abrir modal
+  useEffect(() => {
+    if (show && nombreRef.current) nombreRef.current.focus();
+  }, [show]);
 
   const handleChange = e => setNuevo({ ...nuevo, [e.target.name]: e.target.value });
 
+  // Agregar juego: enviar POST y actualizar estado local
   const handleAdd = e => {
     e.preventDefault();
-    setJuegos([
-      ...juegos,
-      { ...nuevo, imagen: nuevo.imagen.trim() || DEFAULT_IMG },
-    ]);
-    setNuevo({ nombre: '', descripcion: '', imagen: '' });
-    setShow(false);
+    if (!nuevo.nombre || !nuevo.descripcion) {
+      alert('Nombre y descripción son obligatorios');
+      return;
+    }
+
+  const nuevoJuego = {
+    nombre: nuevo.nombre,
+    genero: nuevo.genero,
+    descripcion: nuevo.descripcion,
+    imagen: nuevo.imagen.trim() || DEFAULT_IMG,
+    fechaLanzamiento: nuevo.fechaLanzamiento,
+    plataformas: nuevo.plataformas.split(',').map(p => p.trim()), // convierte a array
+    calificacion: parseFloat(nuevo.calificacion) // asegura que sea número
   };
 
-  /* ─── estilos inline para fondo/overlay ─── */
+    console.log("Juego a enviar:", nuevoJuego);
+
+    fetch('https://laboratorioanalisis.freedynamicdns.net/api/juegos', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(nuevoJuego),
+    })
+      .then(res => {
+        if (!res.ok) throw new Error('Error al guardar el juego');
+        return res.json();
+      })
+      .then(juegoGuardado => {
+        setJuegos([...juegos, juegoGuardado]);
+        setNuevo({ nombre: '', descripcion: '', imagen: '' });
+        setShow(false);
+      })
+      .catch(async err => {
+        console.error(err);
+        try {
+          const errorData = await err.response.json();
+          alert('Error al guardar el juego: ' + (errorData.error || 'Error desconocido'));
+        } catch {
+          alert('Error al guardar el juego en el servidor');
+        }
+      });
+  };
+
   const wrapperStyle = {
     minHeight: '100vh',
     display: 'flex',
@@ -45,7 +102,6 @@ function Catalog() {
     <div style={wrapperStyle}>
       <div style={overlayStyle} />
 
-      {/* ───────── Top bar ───────── */}
       <header className="top-bar d-flex justify-content-between align-items-center px-3">
         <div className="d-flex align-items-center gap-2">
           <img src="/GameHub_Logo.png" alt="logo" height="38" />
@@ -57,10 +113,8 @@ function Catalog() {
         </div>
       </header>
 
-      {/* ───────── Contenido ───────── */}
       <main className="flex-grow-1 position-relative" style={{ zIndex: 1 }}>
         <div className="container py-5">
-          {/* Encabezado y botón */}
           <div className="d-flex justify-content-between align-items-center mb-4">
             <h2 className="fw-bold text-white">Catálogo de Juegos</h2>
             <button className="btn btn-success" onClick={() => setShow(true)}>
@@ -68,13 +122,12 @@ function Catalog() {
             </button>
           </div>
 
-          {/* Tarjetas */}
           <div className="row row-cols-1 row-cols-sm-2 row-cols-lg-3 g-4">
             {juegos.map((j, idx) => (
-              <div className="col" key={idx}>
+              <div className="col" key={j._id || idx}>
                 <div className="card h-100 shadow-sm">
                   <img
-                    src={j.imagen}
+                    src={j.imagen || DEFAULT_IMG}
                     alt={j.nombre}
                     style={{ height: '180px', width: '100%', objectFit: 'cover' }}
                   />
@@ -92,22 +145,17 @@ function Catalog() {
         </div>
       </main>
 
-      {/* ───────── Bottom bar ───────── */}
       <footer className="bottom-bar d-flex justify-content-center align-items-center text-white small">
         <span>Versión 0.1.0 • Build abc123 • © 2025 GameHub</span>
       </footer>
 
-      {/* ───────── Modal para nuevo juego ───────── */}
       {show && (
         <div
           className="modal fade show"
           style={{ display: 'block', backgroundColor: 'rgba(0,0,0,.5)' }}
           onClick={() => setShow(false)}
         >
-          <div
-            className="modal-dialog"
-            onClick={e => e.stopPropagation()} /* evita cerrar al click interno */
-          >
+          <div className="modal-dialog" onClick={e => e.stopPropagation()}>
             <div className="modal-content">
               <div className="modal-header">
                 <h5 className="modal-title">Nuevo juego</h5>
@@ -116,17 +164,34 @@ function Catalog() {
 
               <form onSubmit={handleAdd}>
                 <div className="modal-body">
-                  <div className="mb-3">
-                    <label className="form-label">Nombre</label>
-                    <input
-                      ref={nombreRef}
-                      name="nombre"
-                      className="form-control"
-                      value={nuevo.nombre}
-                      onChange={handleChange}
-                      required
-                    />
-                  </div>
+                <div className="mb-3">
+                  <label className="form-label">Nombre</label>
+                  <input
+                    name="nombre"
+                    className="form-control"
+                    value={nuevo.nombre}
+                    onChange={handleChange}
+                    required
+                    autoFocus
+                  />
+                </div>
+
+                <div className="mb-3">
+                  <label className="form-label">Género</label>
+                  <select
+                    name="genero"
+                    className="form-select"
+                    value={nuevo.genero || ''}
+                    onChange={handleChange}
+                    required
+                  >
+                    <option value="" disabled>Selecciona un género</option>
+                    <option value="Aventura">Aventura</option>
+                    <option value="RPG">RPG</option>
+                    <option value="FPS">FPS</option>
+                    <option value="Estrategia">Estrategia</option>
+                  </select>
+                </div>
                   <div className="mb-3">
                     <label className="form-label">Descripción</label>
                     <textarea
@@ -145,6 +210,40 @@ function Catalog() {
                       value={nuevo.imagen}
                       onChange={handleChange}
                       placeholder="https://..."
+                    />
+                  </div>
+                  <div className="mb-3">
+                    <label className="form-label">Fecha de lanzamiento</label>
+                    <input
+                      type="date"
+                      name="fechaLanzamiento"
+                      className="form-control"
+                      value={nuevo.fechaLanzamiento}
+                      onChange={handleChange}
+                    />
+                  </div>
+
+                  <div className="mb-3">
+                    <label className="form-label">Plataformas</label>
+                    <input
+                      name="plataformas"
+                      className="form-control"
+                      value={nuevo.plataformas}
+                      onChange={handleChange}
+                      placeholder="Ej: PC, PS5, Xbox"
+                    />
+                  </div>
+                  <div className="mb-3">
+                    <label className="form-label">Calificación</label>
+                    <input
+                      type="number"
+                      name="calificacion"
+                      className="form-control"
+                      value={nuevo.calificacion}
+                      onChange={handleChange}
+                      placeholder="1 a 5"
+                      min="1"
+                      max="5"
                     />
                   </div>
                 </div>

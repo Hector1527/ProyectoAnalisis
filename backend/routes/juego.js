@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Juego = require('../models/Juego');
-const { juegoSchema } = require('../schemas/juego');
+const juegoSchema = require('../schemas/juego');
 const validarJuego = (req, res, next) => {
   const { error } = juegoSchema.validate(req.body);
   if (error) {
@@ -34,10 +34,9 @@ router.get('/', async (req, res) => {
   }
 });
 
-module.exports = router;
 
 // POST /api/juegos
-router.post('/', async (req, res) => {
+router.post('/', validarJuego, async (req, res) => {
   try {
     const juego = new Juego(req.body);
     await juego.save();
@@ -48,7 +47,7 @@ router.post('/', async (req, res) => {
 });
 
 // PUT /api/juegos/:id
-router.put('/:id', async (req, res) => {
+router.put('/:id', validarJuego, async (req, res) => {
   try {
     const juego = await Juego.findByIdAndUpdate(
       req.params.id,
@@ -73,25 +72,4 @@ router.delete('/:id', async (req, res) => {
   }
 });
 
-router.post('/', validarJuego, async (req, res) => {  });
-router.put('/:id', validarJuego, async (req, res) => {  });
-
-/**
- * @swagger
- * /api/juegos:
- *   get:
- *     summary: Obtiene todos los juegos
- *     parameters:
- *       - in: query
- *         name: page
- *         schema:
- *           type: integer
- *       - in: query
- *         name: genero
- *         schema:
- *           type: string
- *     responses:
- *       200:
- *         description: Lista de juegos
- */
-router.get('/', async (req, res) => {  });
+module.exports = router;

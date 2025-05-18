@@ -6,14 +6,18 @@ const juegosRouter = require('./routes/juego');
 const swaggerUi = require('swagger-ui-express');
 const specs = require('./docs/swagger'); 
 const mongoose = require("mongoose");
+const cors = require('cors');
 
 
 const app = express();
 
-// Tus rutas de API
-app.get('/api/juegos', (req, res) => {
-  res.json([{ nombre: "Ejemplo", genero: "Aventura" }]);
-});
+app.use(cors({
+  origin: 'https://tu-dominio-frontend.com' // Cambia por el dominio de tu frontend o usa '*' solo para pruebas
+}));
+
+app.use(express.json());
+app.use('/api/juegos', juegosRouter); 
+
 
 // Ruta raíz debe definirse ANTES del catch-all
 app.get('/', (req, res) => {
@@ -25,20 +29,12 @@ app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'frontend/dist/index.html'));
 });
 
-app.listen(PORT, '0.0.0.0', () => {
+app.listen(PORT, () => {
   console.log(`Servidor corriendo en puerto ${PORT}`);
 });
 
-app.get('/', (req, res) => {
-  res.send('Backend funcionando!');
-});
 
 mongoose.connect(process.env.MONGODB_URI)
   .then(() => console.log('✅ Conectado a MongoDB'))
   .catch(err => console.error('❌ Error MongoDB:', err));
-
-  app.use(express.json());
-app.use('/api/juegos', juegosRouter); 
-
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));
 

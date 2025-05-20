@@ -13,7 +13,6 @@ connectDB().then(async () => {
       imagenURL: "https://ejemplo.com/zelda.jpg",
       rating: 5
     },
-    // Agrega más juegos aquí...
   ];
 
   await Videojuego.insertMany(juegos);

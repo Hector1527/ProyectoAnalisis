@@ -12,11 +12,12 @@ const cors = require('cors');
 const app = express();
 
 app.use(cors({
-  origin: 'https://tu-dominio-frontend.com' // Cambia por el dominio de tu frontend o usa '*' solo para pruebas
+  origin: 'https://tu-dominio-frontend.com'
 }));
 
 app.use(express.json());
 app.use('/api/juegos', juegosRouter); 
+app.use('/api/usuarios', require('./routes/usuario'));
 
 
 // Ruta raíz debe definirse ANTES del catch-all

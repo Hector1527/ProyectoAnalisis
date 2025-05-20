@@ -10,9 +10,25 @@ const juegoSchema = new mongoose.Schema({
     enum: ['Aventura', 'RPG', 'FPS', 'Estrategia'], 
     required: true 
   },
-  fechaLanzamiento: { type: Date, default: Date.now },
-  plataformas: [{ type: String }],
-  calificacion: { type: Number, min: 0, max: 5 }
+  descripcion: { 
+    type: String, 
+    maxlength: 500 
+  },
+  imagen: { 
+    type: String 
+  },
+  fechaLanzamiento: { 
+    type: Date, 
+    default: Date.now 
+  },
+  plataformas: [{ 
+    type: String 
+  }],
+  calificacion: { 
+    type: Number, 
+    min: 0, 
+    max: 5 
+  }
 });
 
 module.exports = mongoose.model('Juego', juegoSchema);

@@ -1,9 +1,16 @@
 import { useState, useRef, useEffect } from 'react';
 import bgImage from '/OIP.jpeg';
+import { googleLogout } from '@react-oauth/google';
+import { useNavigate } from 'react-router-dom';
 
-const DEFAULT_IMG = 'https://via.placeholder.com/800x600.png?text=Imagen+no+disponible';
+
+const DEFAULT_IMG = 'https://placehold.co/800x600?text=Imagen+no+disponible'; 
 
 function Catalog() {
+  const [juegoSeleccionado, setJuegoSeleccionado] = useState(null);
+  const [modoEdicion, setModoEdicion] = useState(false);
+  const [formDatos, setFormDatos] = useState({});
+  const navigate = useNavigate();
   const [juegos, setJuegos] = useState([]);
   const [show, setShow] = useState(false);
   const [nuevo, setNuevo] = useState({
@@ -37,6 +44,33 @@ function Catalog() {
   }, [show]);
 
   const handleChange = e => setNuevo({ ...nuevo, [e.target.name]: e.target.value });
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormDatos(prev => ({ ...prev, [name]: value }));
+  };
+
+const handleGuardar = async () => {
+  try {
+    const res = await fetch(`https://laboratorioanalisis.freedynamicdns.net/api/juegos/${formDatos._id}`, {
+      method: 'PUT', // o PATCH, depende del backend
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(formDatos),
+    });
+    if (!res.ok) throw new Error('Error al guardar cambios');
+    const juegoActualizado = await res.json();
+    setJuegos(juegos.map(j => (j._id === juegoActualizado._id ? juegoActualizado : j)));
+    setJuegoSeleccionado(juegoActualizado);
+    setModoEdicion(false);
+  } catch (error) {
+    console.error(error);
+    alert('Error al guardar los cambios en el servidor');
+  }
+};
+
+  const handleCancelar = () => {
+    setModoEdicion(false);
+  };
 
   // Agregar juego: enviar POST y actualizar estado local
   const handleAdd = e => {
@@ -83,6 +117,7 @@ function Catalog() {
       });
   };
 
+  
   const wrapperStyle = {
     minHeight: '100vh',
     display: 'flex',
@@ -98,19 +133,45 @@ function Catalog() {
     zIndex: 0,
   };
 
+  const handleEliminar = async (id) => {
+  const confirmar = window.confirm('¿Estás seguro de que deseas eliminar este juego?');
+  if (!confirmar) return;
+
+  try {
+    const res = await fetch(`https://laboratorioanalisis.freedynamicdns.net/api/juegos/${id}`, {
+      method: 'DELETE'
+    });
+    if (!res.ok) throw new Error('Error al eliminar');
+
+    // Elimina del estado
+    setJuegos(juegos.filter(j => j._id !== id));
+  } catch (error) {
+    console.error(error);
+    alert('No se pudo eliminar el juego');
+  }
+};
+
+const handleLogout = () => {
+  googleLogout();
+  navigate('/login'); // redirige al componente de Login
+};
+
+
   return (
     <div style={wrapperStyle}>
       <div style={overlayStyle} />
 
-      <header className="top-bar d-flex justify-content-between align-items-center px-3">
+      <header className="top-bar d-flex justify-content-between align-items-center px-3" style={{ position: 'sticky', top: 0, zIndex: 10, backgroundColor: 'rgba(0,0,0,0.6)' }}>
         <div className="d-flex align-items-center gap-2">
-          <img src="/GameHub_Logo.png" alt="logo" height="38" />
           <span className="fw-bold fs-5 text-white">GameHub</span>
         </div>
         <div className="text-white small d-flex gap-4 flex-wrap">
           <span>🎮 Juegos en catálogo: {juegos.length}</span>
           <span>📥 Agrega más títulos</span>
         </div>
+        <button className="btn btn-outline-light btn-sm" onClick={handleLogout}>
+  🔒 Cerrar sesión
+</button>
       </header>
 
       <main className="flex-grow-1 position-relative" style={{ zIndex: 1 }}>
@@ -127,20 +188,158 @@ function Catalog() {
               <div className="col" key={j._id || idx}>
                 <div className="card h-100 shadow-sm">
                   <img
-                    src={j.imagen || DEFAULT_IMG}
+                    src={j.imagen?.startsWith('http') ? j.imagen : DEFAULT_IMG}
                     alt={j.nombre}
                     style={{ height: '180px', width: '100%', objectFit: 'cover' }}
                   />
                   <div className="p-4 d-flex flex-column">
                     <h5 className="fw-semibold">{j.nombre}</h5>
                     <p className="text-muted flex-grow-1">{j.descripcion}</p>
-                    <a href="#" className="btn btn-primary w-100 mt-2">
+                    <div className="d-flex gap-2 mt-2">
+                    <button
+                      className="btn btn-primary flex-grow-1"
+                      onClick={() => setJuegoSeleccionado(j)}
+                    >
                       Ver más
-                    </a>
+                    </button>
+                      <button
+                        onClick={() => handleEliminar(j._id)}
+                        className="btn btn-danger"
+                        title="Eliminar juego"
+                      >
+                        🗑️
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
             ))}
+            {juegoSeleccionado && (
+              <div
+                className="modal fade show"
+                style={{ display: 'block', backgroundColor: 'rgba(0,0,0,.5)' }}
+                onClick={() => {
+                  setJuegoSeleccionado(null);
+                  setModoEdicion(false);
+                }}
+              >
+                <div className="modal-dialog" onClick={e => e.stopPropagation()}>
+                  <div className="modal-content">
+                    <div className="modal-header">
+                      <h5 className="modal-title">
+                        {modoEdicion ? 'Editar Juego' : juegoSeleccionado.nombre}
+                      </h5>
+                      <button type="button" className="btn-close" onClick={() => {
+                        setJuegoSeleccionado(null);
+                        setModoEdicion(false);
+                      }} />
+                    </div>
+                    <div className="modal-body">
+                      {modoEdicion ? (
+                        <>
+                          <label>
+                            Nombre:
+                            <input
+                              type="text"
+                              name="nombre"
+                              value={formDatos.nombre || ''}
+                              onChange={handleInputChange}
+                            />
+                          </label>
+
+                          <label>
+                            Género:
+                            <input
+                              type="text"
+                              name="genero"
+                              value={formDatos.genero || ''}
+                              onChange={handleInputChange}
+                            />
+                          </label>
+
+                          <label>
+                            Fecha de lanzamiento:
+                            <input
+                              type="date"
+                              name="fechaLanzamiento"
+                              value={formDatos.fechaLanzamiento || ''}
+                              onChange={handleInputChange}
+                            />
+                          </label>
+
+                          <label>
+                            Plataformas (separadas por coma):
+                            <input
+                              type="text"
+                              name="plataformas"
+                              value={formDatos.plataformas ? formDatos.plataformas.join(', ') : ''}
+                              onChange={e => setFormDatos(prev => ({
+                                ...prev,
+                                plataformas: e.target.value.split(',').map(p => p.trim())
+                              }))}
+                            />
+                          </label>
+
+                          <label>
+                            Calificación:
+                            <input
+                              type="number"
+                              min="0"
+                              max="10"
+                              name="calificacion"
+                              value={formDatos.calificacion || ''}
+                              onChange={handleInputChange}
+                            />
+                          </label>
+
+                          <label>
+                            Descripción:
+                            <textarea
+                              name="descripcion"
+                              value={formDatos.descripcion || ''}
+                              onChange={handleInputChange}
+                            />
+                          </label>
+                        </>
+                      ) : (
+                        <>
+                          <img
+                            src={juegoSeleccionado.imagen?.startsWith('http') ? juegoSeleccionado.imagen : DEFAULT_IMG}
+                            alt={juegoSeleccionado.nombre}
+                            style={{ width: '100%', height: 'auto', marginBottom: '1rem' }}
+                          />
+                          <p><strong>Género:</strong> {juegoSeleccionado.genero}</p>
+                          <p><strong>Fecha de lanzamiento:</strong> {juegoSeleccionado.fechaLanzamiento}</p>
+                          <p><strong>Plataformas:</strong> {juegoSeleccionado.plataformas?.join(', ')}</p>
+                          <p><strong>Calificación:</strong> {juegoSeleccionado.calificacion}</p>
+                          <p><strong>Descripción:</strong> {juegoSeleccionado.descripcion}</p>
+                        </>
+                      )}
+                    </div>
+
+                    <div className="modal-footer">
+                      {modoEdicion ? (
+                        <>
+                          <button className="btn btn-secondary" onClick={handleCancelar}>
+                            Cancelar
+                          </button>
+                          <button className="btn btn-primary" onClick={handleGuardar}>
+                            Guardar
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <button className="btn btn-secondary" onClick={() => setJuegoSeleccionado(null)}>
+                            Cerrar
+                          </button>
+                        </>
+                      )}
+                    </div>
+
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </main>

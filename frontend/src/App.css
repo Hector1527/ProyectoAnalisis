@@ -40,3 +40,8 @@
 .read-the-docs {
   color: #888;
 }
+
+.top-bar {
+  background-color: rgba(0, 0, 0, 0.6);
+  height: 60px;
+}

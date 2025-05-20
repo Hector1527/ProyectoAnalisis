@@ -105,3 +105,8 @@ main { flex: 1 0 auto; }
   box-shadow: none;
 }
 .login-card label { color: #555; }
+
+.top-bar {
+  background-color: rgba(0, 0, 0, 0.6);
+  height: 60px;
+}
